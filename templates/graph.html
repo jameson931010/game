@@ -14,89 +14,108 @@
         <p>0 0 0 0 0 0</p>
     </div>
     <script>
+    class Node {
+        constructor(r, c) {
+            this.row = r;
+            this.column = c;
+            this.bomb = false;
+            this.checked = false;
+        }
+    }
     var endgame = false;
     var space = 36, bomb = 0;
-    var graph = [
-        [-1, -1, -1, -1, -1, -1, -1, -1],
-        [-1, 0, 0, 0, 0, 0, 0, -1],
-        [-1, 0, 0, 0, 0, 0, 0, -1],
-        [-1, 0, 0, 0, 0, 0, 0, -1],
-        [-1, 0, 0, 0, 0, 0, 0, -1],
-        [-1, 0, 0, 0, 0, 0, 0, -1],
-        [-1, 0, 0, 0, 0, 0, 0, -1],
-        [-1, -1, -1, -1, -1, -1, -1, -1]
-    ];
+    var graph = [[],[],[],[],[],[],[],[]];
     var checkqueue=[];
-    var checked=[];
+    function modify(str, idx, tar) {
+        str = str.slice(0, idx)+tar+str.slice(idx+1, str.length);
+        return str;
+    }
     function lose() {
         alert("you lose!!");
+        endgame = true;
+    }
+    function win() {
+        alert("you win!!");
+        endgame = true;
     }
     function count(row, column) {
-        checked.push([row, column]);
         var dx = [0, 0, 1, -1];
         var dy = [1, -1, 0, 0];
         var cnt = 0;
         for(var i=0; i<4; i++){
             var nx = row+dx[i], ny = column+dy[i];
-            if(graph[nx][ny] == -1) {
+            if(graph[nx][ny].bomb) {
                 cnt++;
-                checked.push([nx, ny]);
-            }
-            else if(!(checkqueue.includes([nx, ny]) || checked.includes([nx, ny]))) {
-                console.log(checkqueue);
-                checkqueue.push([nx, ny]);
+                graph[nx][ny].checked = true;
             }
         }
-        graph[row][column] = cnt;
+        if(cnt == 0 && !(checkqueue.includes(graph[nx][ny]) || graph[nx][ny].checked)) {
+            for(var i=0; i<4; i++){
+                var nx = row+dx[i], ny = column+dy[i];
+                if(!(checkqueue.includes(graph[nx][ny]) || graph[nx][ny].checked)) {
+                    
+                    checkqueue.push(graph[nx][ny]);
+                }
+            }
+        }
         return cnt;
     }
     function check(row, column, dir) {
-        if(dir == -1 && graph[row][column] == -1) {
+console.log([row, column]);
+        graph[row][column].checked = true;
+        space--;
+        if(dir == 1 && graph[row][column].bomb) {
             lose();
             return;
         }
         else {
-            var cnt = count(row, column);
-            graph[row][column] = cnt;
-            while(checkqueue.length >= 0) {
+            output.innerText = modify(output.innerText, 13*(row-1)+2*(column-1), count(row, column).toString());
+            console.log(count(row, column))
+            console.log(output.innerText[13*(row-1)+2*(column-1)]);
+            if(checkqueue.length > 0) {
+console.log(checkqueue.length);
                 var index = checkqueue.pop();
-                console.log(index[0], index[1]);
-                check(index[0], index[1], 0);
+                return check(index.row, index.column, 0);
+            }
+            if(space == 0) {
+                win();
             }
         }
     }
 
     function create() {
+        for(var i=0; i<8; i++){
+            for(var j=0; j<8; j++){
+                graph[i][j] = new Node(i, j);
+            }
+        }
+        for(var i=0; i<8; i++){
+            graph[i][0].checked = true;
+            graph[i][7].checked = true;
+            graph[0][i].checked = true;
+            graph[7][i].checked = true;
+        }
         while(bomb < 4) {
             var br = Math.floor(Math.random()*6);
             var bc = Math.floor(Math.random()*6);
-            if(graph[br+1][bc+1] == 0) {
+            if(!graph[br+1][bc+1].bomb) {
                 bomb++;
-                graph[br+1][bc+1] = -1;
+                space--;
+                graph[br+1][bc+1].bomb = true;
             }
         }
     }
     create();
-    console.log(graph);
+console.log(graph);
     while(!endgame) {
         var input=prompt("please enter row and colomn number");
         index=input.split(" ");
         row = parseInt(index[0])+1;
         column = parseInt(index[1])+1;
-        check(row, column, -1);
         var output = document.getElementById("graph");
-        output = `
-        <div>
-            <p>${graph[1]}</p>
-            <p>${graph[2]}</p>
-            <p>${graph[3]}</p>
-            <p>${graph[4]}</p>
-            <p>${graph[5]}</p>
-            <p>${graph[6]}</p>
-        </div>;
-        `
+        check(row, column, 1);
     }
 
     </script> 
-    <script src="./play.js" />
+    <script src="/play.js" />
 </body>
