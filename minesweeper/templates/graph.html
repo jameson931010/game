@@ -17,19 +17,36 @@
     var endgame = false;
     var space = 36, bomb = 0;
     var graph = [[],[],[],[],[],[],[],[]];
+    var col = ["green", "blue", "orange", "red", "darkred", "blueviolet", "navy", "indigo", "indigo"];
     var checkqueue=[];
     function modify(row, column, tar) {
         var output = document.getElementById("square"+String(row)+String(column));
         output.innerHTML = tar;
-        console.log(output);
+        output.style = "width:100px; height:100px; font-size:30px; border:1px solid black; background-color:white; color:"+col[parseInt(tar)]+";";
+    }
+    function clear() {
+        for(var i=1; i<=6; i++){
+            for(var j=1; j<=6; j++){
+                if(!graph[i][j].checked) {
+                    check(i, j, 0);
+                }
+                if(graph[i][j].bomb) {
+                    var output = document.getElementById("square"+String(i)+String(j));
+                    output.innerHTML = "\u{01F4A3}";
+                    output.style = "width:100px; height:100px; font-size:30px; border:1px solid black; background-color:white;";
+                }
+            }
+        }
     }
     function lose() {
         alert("you lose!!");
         endgame = true;
+        clear();
     }
     function win() {
         alert("you win!!");
         endgame = true;
+        clear();
     }
     function count(row, column) {
         var dx = [0, 0, 1, -1, 1, 1, -1, -1];
@@ -42,7 +59,7 @@
             }
         }
         if(cnt == 0) {
-            for(var i=0; i<4; i++){
+            for(var i=0; i<8; i++){
                 var nx = row+dx[i], ny = column+dy[i];
                 if(!(checkqueue.includes(graph[nx][ny]) || graph[nx][ny].checked)) {
                     
@@ -56,19 +73,17 @@
 console.log([row, column]);
         graph[row][column].checked = true;
         space--;
-        if(flag == 1 && graph[row][column].bomb) {
+        if(flag == 1 && graph[row][column].bomb && !endgame) {
             lose();
             return;
         }
         else {
             modify(row, column, count(row, column).toString());
-            console.log(count(row, column));
             if(checkqueue.length > 0) {
                 var index = checkqueue.pop();
                 return check(index.row, index.column, 0);
             }
-console.log(space);
-            if(space == 0) {
+            if(space == 0 && !endgame) {
                 win();
             }
         }
@@ -86,10 +101,11 @@ console.log(space);
             graph[0][i].checked = true;
             graph[7][i].checked = true;
         }
-        while(bomb < 4) {
+        while(bomb < 5) {
             var br = Math.floor(Math.random()*6);
             var bc = Math.floor(Math.random()*6);
             if(!graph[br+1][bc+1].bomb) {
+console.log([br+1, bc+1]);
                 bomb++;
                 space--;
                 graph[br+1][bc+1].bomb = true;
@@ -98,7 +114,7 @@ console.log(space);
         }
         for(var i=1; i<=6; i++){
             for(var j=1; j<=6; j++){
-                document.write("<button id=square"+String(i)+String(j)+" onclick=\"check("+String(i)+","+String(j)+",1)\" type=\"button\" style=\"width:80px; height:80px; border:1px solid black; background-color:white;\">?</button>");
+                document.write("<button id=square"+String(i)+String(j)+" onclick=\"check("+String(i)+","+String(j)+",1)\" type=\"button\" style=\"width:100px; height:100px; font-size:30px; border:1px solid black; background-color:white; color:black;\">?</button>");
             }
             document.write("<br/>")
         }
